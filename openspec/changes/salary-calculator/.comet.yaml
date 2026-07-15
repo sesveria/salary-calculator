@@ -1,12 +1,12 @@
 workflow: full
-phase: build
+phase: verify
 context_compression: off
 build_mode: direct
 build_pause: null
 subagent_dispatch: null
 tdd_mode: direct
 isolation: branch
-verify_mode: null
+verify_mode: light
 auto_transition: true
 base_ref: null
 design_doc: docs/superpowers/specs/2026-07-15-salary-calculator-design.md
