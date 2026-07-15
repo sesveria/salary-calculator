@@ -1,16 +1,16 @@
 workflow: full
 phase: build
 context_compression: off
-build_mode: null
+build_mode: direct
 build_pause: null
 subagent_dispatch: null
-tdd_mode: null
-isolation: null
+tdd_mode: direct
+isolation: branch
 verify_mode: null
 auto_transition: true
 base_ref: null
 design_doc: docs/superpowers/specs/2026-07-15-salary-calculator-design.md
-plan: null
+plan: docs/superpowers/plans/2026-07-15-salary-calculator.md
 verify_result: pending
 verification_report: null
 branch_status: pending
@@ -19,3 +19,4 @@ verified_at: null
 archived: false
 handoff_context: openspec/changes/salary-calculator/.comet/handoff/design-context.json
 handoff_hash: 81eb704e95123f9a0a49c2010ccc5efdf82d6151aeefd5b6f1df077bee97df0a
+direct_override: true
