@@ -20,3 +20,4 @@ archived: false
 handoff_context: openspec/changes/salary-calculator/.comet/handoff/design-context.json
 handoff_hash: 81eb704e95123f9a0a49c2010ccc5efdf82d6151aeefd5b6f1df077bee97df0a
 direct_override: true
+build_command: python3 -m pytest tests/ -v
