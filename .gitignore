@@ -2,25 +2,49 @@
 __pycache__/
 *.pyc
 *.pyo
-*.egg-info/
-dist/
-build/
-*.spec
-
-# Environment
-.env
-venv/
-.venv/
-
-# Database
 *.db
-*.db-journal
-*.db-wal
+*.log
 
-# IDE
-.vscode/
-.idea/
+# AI tool configs (not project code)
+.agent/
+.amazonq/
+.augment/
+.bob/
+.claude/
+.cline/
+.clinerules/
+.codebuddy/
+.codex/
+.continue/
+.cospec/
+.crush/
+.cursor/
+.factory/
+.forge/
+.gemini/
+.github/
+.iflow/
+.junie/
+.kilocode/
+.kiro/
+.lingma/
+.opencode/
+.pi/
+.qoder/
+.qwen/
+.roo/
+.trae/
+.windsurf/
+
+# Docs
+openspec/
+docs/
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Build
+*.tar.gz
+*.zip
+dist/
