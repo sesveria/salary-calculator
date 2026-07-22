@@ -185,14 +185,12 @@ def calc_all(basic_salary: float, social_base: float,
                                critical_illness_amount=critical_illness_amount)
 
     # 4. 个税（累计预扣法）
-    if cum_months > 0:
-        ytd_gross = cum_ytd_gross + gross
-        ytd_insurance = cum_ytd_insurance + insurance['total']
-        ytd_deductions = cum_ytd_deductions + tax_deductions
-        months = cum_months + 1
-        tax = calc_cumulative_tax(ytd_gross, ytd_insurance, months, ytd_deductions, cum_tax_paid)
-    else:
-        tax = calc_tax(gross, insurance['total'], tax_deductions)
+    # 始终使用累计预扣法，即使 cum_months=0（新年首月）
+    ytd_gross = cum_ytd_gross + gross
+    ytd_insurance = cum_ytd_insurance + insurance['total']
+    ytd_deductions = cum_ytd_deductions + tax_deductions
+    months = cum_months + 1
+    tax = calc_cumulative_tax(ytd_gross, ytd_insurance, months, ytd_deductions, cum_tax_paid)
 
     # 5. 实发
     net = calc_net(gross, insurance['total'], tax)
