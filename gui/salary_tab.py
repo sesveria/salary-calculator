@@ -360,7 +360,6 @@ class SalaryTab:
                 actual_work_days=actual_days,
                 month_work_days=month_days,
                 critical_illness_amount=ci,
-                extra_income=extra,
                 cum_ytd_gross=cum['ytd_gross'],
                 cum_ytd_insurance=cum['ytd_insurance'],
                 cum_months=cum['months_count'],
@@ -373,7 +372,7 @@ class SalaryTab:
             self.result_daily.value = f"¥{result['daily_wage']:,.2f}"
             ot = result['overtime']
             self.result_overtime.value = f"¥{ot['total']:,.2f} (周末{ot['weekend_amount']:,.2f} + 节假日{ot['holiday_amount']:,.2f})"
-            self.result_extra_income.value = f"¥{result['extra_income']:,.2f}"
+            self.result_extra_income.value = f"¥{extra:,.2f}"
             self.result_gross.value = f"¥{result['gross_salary']:,.2f}"
 
             ins = result['insurance']

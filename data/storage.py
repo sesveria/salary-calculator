@@ -284,13 +284,14 @@ def reconcile_balances(db_path: str = DB_PATH):
     for rec in records:
         ym = rec['year_month']
         net = rec.get('net_salary', 0) or 0
+        extra = rec.get('extra_income', 0) or 0
         nec = rec.get('actual_necessary', 0) or 0
         flex = rec.get('actual_flexible', 0) or 0
         sav = rec.get('actual_savings', 0) or 0
         actual_total = nec + flex + sav
         rec['opening_balance'] = prev_closing
-        rec['closing_balance'] = round(prev_closing + net - actual_total, 2)
-        rec['total_available'] = round(prev_closing + net, 2)
+        rec['closing_balance'] = round(prev_closing + net + extra - actual_total, 2)
+        rec['total_available'] = round(prev_closing + net + extra, 2)
         rec['total_expense'] = actual_total
         rec['save_rate'] = round(sav / net * 100, 2) if net > 0 else 0
         save_monthly_record(dict(rec), db_path)

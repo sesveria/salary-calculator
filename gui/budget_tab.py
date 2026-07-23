@@ -549,11 +549,12 @@ class BudgetTab:
 
         # 直接读取净收入
         net = rec.get('net_salary', 0) or 0
-        self.current_net = net
-        self.net_income_display.value = f"¥{net:,.2f}"
+        extra = rec.get('extra_income', 0) or 0
+        self.current_net = net + extra
+        self.net_income_display.value = f"¥{net:,.2f} + ¥{extra:,.2f}（额外）"
         opening = get_opening_balance(ym)
         self.opening_balance_input.value = str(opening)
-        total_available = round(opening + net, 2)
+        total_available = round(opening + net + extra, 2)
         self.total_available_display.value = f"¥{total_available:,.2f}"
 
         # 继承上月方案
@@ -653,14 +654,15 @@ class BudgetTab:
             return
 
         net = rec.get('net_salary', 0) or 0
-        self.current_net = net
-        self.net_income_display.value = f"¥{net:,.2f}"
+        extra = rec.get('extra_income', 0) or 0
+        self.current_net = net + extra
+        self.net_income_display.value = f"¥{net:,.2f} + ¥{extra:,.2f}（额外）"
 
         # 加载上月结余
         opening = get_opening_balance(self.current_ym)
         self.opening_balance_input.value = str(opening)
 
-        total_available = round(opening + net, 2)
+        total_available = round(opening + net + extra, 2)
         self.total_available_display.value = f"¥{total_available:,.2f}"
 
         # 生成细项（方案A：使用精确金额，不做方案重算）
@@ -793,14 +795,15 @@ class BudgetTab:
 
             # 重新计算 closing_balance
             net = rec.get('net_salary', 0) or 0
+            extra = rec.get('extra_income', 0) or 0
             nec = rec.get('actual_necessary', 0) or 0
             flex = rec.get('actual_flexible', 0) or 0
             sav = rec.get('actual_savings', 0) or 0
             actual_total = nec + flex + sav
-            rec['closing_balance'] = round(opening_val + net - actual_total, 2)
-            rec['total_available'] = round(opening_val + net, 2)
+            rec['closing_balance'] = round(opening_val + net + extra - actual_total, 2)
+            rec['total_available'] = round(opening_val + net + extra, 2)
             rec['total_expense'] = actual_total
-            rec['save_rate'] = round(sav / net * 100, 2) if net > 0 else 0
+            rec['save_rate'] = round(sav / (net + extra) * 100, 2) if (net + extra) > 0 else 0
 
             save_monthly_record(dict(rec))
 

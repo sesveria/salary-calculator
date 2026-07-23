@@ -145,7 +145,6 @@ def calc_all(basic_salary: float, social_base: float,
              actual_work_days: float = 0,
              month_work_days: float = 0,
              critical_illness_amount: float = DEFAULT_CRITICAL_ILLNESS,
-             extra_income: float = 0,
              cum_ytd_gross: float = 0,
              cum_ytd_insurance: float = 0,
              cum_months: int = 0,
@@ -179,7 +178,7 @@ def calc_all(basic_salary: float, social_base: float,
     else:
         gross = _calc_gross(basic_salary, overtime['total'])
         daily_wage = round(basic_salary / 21.75, 2)
-    gross = round(gross + extra_income, 2)
+    # gross = round(gross + extra_income, 2)
 
     # 3. 五险一金 + 大病医疗
     insurance = calc_insurance(social_base, housing_base, housing_rate,
@@ -200,7 +199,6 @@ def calc_all(basic_salary: float, social_base: float,
         'basic_salary': basic_salary,
         'daily_wage': daily_wage,
         'overtime': overtime,
-        'extra_income': extra_income,
         'gross_salary': gross,
         'insurance': insurance,
         'tax': tax,
