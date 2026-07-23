@@ -76,6 +76,13 @@ class BudgetTab:
             on_change=self._on_opening_changed,
         )
         self.net_income_display = ft.Text("¥0.00", size=16, color=ft.Colors.GREY_700)
+        self.extra_income_input = ft.TextField(
+            label="月额外收入（元）", value="0", width=160,
+            keyboard_type=ft.KeyboardType.NUMBER,
+            prefix_icon=ft.Icons.ATTACH_MONEY,
+            hint_text="税后，不计入工资",
+            on_change=self._on_extra_changed,
+        )
         self.total_available_display = ft.Text(
             "¥0.00", size=20, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_700,
         )
@@ -93,6 +100,7 @@ class BudgetTab:
         )
 
         self.current_net = 0
+        self.current_base_net = 0
         self.current_ym = ""
         self.current_allocation = {}
         self.current_total_available = 0
@@ -172,6 +180,10 @@ class BudgetTab:
                                             ft.Text("本月税后收入", size=11, color=ft.Colors.GREY_500),
                                             self.net_income_display,
                                         ], spacing=2),
+                                    ]),
+                                    ft.Row([
+                                        self.extra_income_input,
+                                        ft.Container(expand=True),
                                     ]),
                                     ft.Row([
                                         ft.Text("💰 总可用资金", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_700),
@@ -438,6 +450,21 @@ class BudgetTab:
         self.total_available_display.value = f"¥{total:,.2f}"
         self.page.update()
 
+    def _on_extra_changed(self, e=None):
+        """额外收入变化时实时更新总可用资金显示"""
+        try:
+            extra = float(self.extra_income_input.value or 0)
+        except ValueError:
+            extra = 0
+        try:
+            opening = float(self.opening_balance_input.value or 0)
+        except ValueError:
+            opening = 0
+        total = round(opening + self.current_base_net + extra, 2)
+        self.current_net = self.current_base_net + extra
+        self.total_available_display.value = f"¥{total:,.2f}"
+        self.page.update()
+
     # ──── 添加/删除子项 ────
 
     def _add_custom_item(self, e=None):
@@ -534,8 +561,10 @@ class BudgetTab:
         rec = get_monthly_record(ym)
         if not rec:
             self.current_net = 0
+            self.current_base_net = 0
             self.current_allocation = {}
             self.net_income_display.value = "¥0.00"
+            self.extra_income_input.value = "0"
             self.total_available_display.value = "¥0.00"
             self.result_necessary.value = "¥0.00"
             self.result_flexible.value = "¥0.00"
@@ -550,8 +579,10 @@ class BudgetTab:
         # 直接读取净收入
         net = rec.get('net_salary', 0) or 0
         extra = rec.get('extra_income', 0) or 0
+        self.current_base_net = net
         self.current_net = net + extra
         self.net_income_display.value = f"¥{net:,.2f} + ¥{extra:,.2f}（额外）"
+        self.extra_income_input.value = str(extra)
         opening = get_opening_balance(ym)
         self.opening_balance_input.value = str(opening)
         total_available = round(opening + net + extra, 2)
@@ -655,8 +686,10 @@ class BudgetTab:
 
         net = rec.get('net_salary', 0) or 0
         extra = rec.get('extra_income', 0) or 0
+        self.current_base_net = net
         self.current_net = net + extra
         self.net_income_display.value = f"¥{net:,.2f} + ¥{extra:,.2f}（额外）"
+        self.extra_income_input.value = str(extra)
 
         # 加载上月结余
         opening = get_opening_balance(self.current_ym)
@@ -795,7 +828,11 @@ class BudgetTab:
 
             # 重新计算 closing_balance
             net = rec.get('net_salary', 0) or 0
-            extra = rec.get('extra_income', 0) or 0
+            try:
+                extra = float(self.extra_income_input.value or 0)
+            except ValueError:
+                extra = 0
+            rec['extra_income'] = extra
             nec = rec.get('actual_necessary', 0) or 0
             flex = rec.get('actual_flexible', 0) or 0
             sav = rec.get('actual_savings', 0) or 0
