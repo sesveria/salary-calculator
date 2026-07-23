@@ -55,6 +55,11 @@ class SalaryTab:
             label="专项附加扣除（元）", value="0", width=180,
             prefix_icon=ft.Icons.REMOVE, keyboard_type=ft.KeyboardType.NUMBER,
         )
+        self.extra_income = ft.TextField(
+            label="月额外收入（元）", value="0", width=180,
+            prefix_icon=ft.Icons.ATTACH_MONEY, keyboard_type=ft.KeyboardType.NUMBER,
+            hint_text="奖金、兼职等",
+        )
         self.critical_illness = ft.TextField(
             label="大病医疗保险（元）", value="10", width=140,
             prefix_icon=ft.Icons.MEDICAL_SERVICES, keyboard_type=ft.KeyboardType.NUMBER,
@@ -106,6 +111,7 @@ class SalaryTab:
         self.result_income = ft.Text("—", size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.GREEN_700)
         self.result_daily = ft.Text("—")
         self.result_overtime = ft.Text("—")
+        self.result_extra_income = ft.Text("—")
         self.result_gross = ft.Text("—")
         self.result_pension = ft.Text("—")
         self.result_medical = ft.Text("—")
@@ -147,6 +153,7 @@ class SalaryTab:
         self.holiday_days.value = str(rec.get('holiday_overtime_days', 0) or 0)
         self.tax_deductions.value = str(rec.get('tax_deductions', 0) or 0)
         self.critical_illness.value = str(rec.get('insurance_critical_illness', 10) or 10)
+        self.extra_income.value = str(rec.get('extra_income', 0) or 0)
         self.pay_day.value = str(rec.get('pay_day', 15) or 15)
         log.info(f"工资Tab: 从 {ym} 恢复数据")
 
@@ -235,7 +242,11 @@ class SalaryTab:
                                 ft.VerticalDivider(width=1),
                                 self.holiday_days,
                             ]),
-                            ft.Row([self.tax_deductions]),
+                            ft.Row([
+                                self.tax_deductions,
+                                ft.VerticalDivider(width=1),
+                                self.extra_income,
+                            ]),
                             ft.Divider(height=1, color=ft.Colors.GREY_300),
                             self.daily_mode_switch,
                             self.daily_fields,
@@ -266,6 +277,7 @@ class SalaryTab:
                             self._mk_row("基本工资", self.result_income),
                             self._mk_row("日工资", self.result_daily),
                             self._mk_row("加班费合计", self.result_overtime),
+                            self._mk_row("月额外收入", self.result_extra_income),
                             ft.Divider(),
                             self._mk_row("应发工资", self.result_gross, True),
                             ft.Divider(),
@@ -318,6 +330,7 @@ class SalaryTab:
             holiday = float(self.holiday_days.value or 0)
             deductions = float(self.tax_deductions.value or 0)
             ci = float(self.critical_illness.value or 10)
+            extra = float(self.extra_income.value or 0)
 
             daily_mode = self.daily_mode_switch.value
             actual_days = 0
@@ -347,6 +360,7 @@ class SalaryTab:
                 actual_work_days=actual_days,
                 month_work_days=month_days,
                 critical_illness_amount=ci,
+                extra_income=extra,
                 cum_ytd_gross=cum['ytd_gross'],
                 cum_ytd_insurance=cum['ytd_insurance'],
                 cum_months=cum['months_count'],
@@ -359,6 +373,7 @@ class SalaryTab:
             self.result_daily.value = f"¥{result['daily_wage']:,.2f}"
             ot = result['overtime']
             self.result_overtime.value = f"¥{ot['total']:,.2f} (周末{ot['weekend_amount']:,.2f} + 节假日{ot['holiday_amount']:,.2f})"
+            self.result_extra_income.value = f"¥{result['extra_income']:,.2f}"
             self.result_gross.value = f"¥{result['gross_salary']:,.2f}"
 
             ins = result['insurance']
@@ -454,6 +469,7 @@ class SalaryTab:
             'medical_rate': 0.02,
             'unemployment_rate': 0.005,
             'tax_free_threshold': 5000,
+            'extra_income': extra,
             # 计算结果
             'gross_salary': result['gross_salary'],
             'daily_wage': result['daily_wage'],

@@ -30,6 +30,7 @@ NEW_COLUMNS = {
     'insurance_unemployment': 'REAL DEFAULT 0',
     'insurance_housing_fund': 'REAL DEFAULT 0',
     'insurance_critical_illness': 'REAL DEFAULT 10',
+    'extra_income': 'REAL DEFAULT 0',
     'insurance_total': 'REAL DEFAULT 0',
     'tax_amount': 'REAL DEFAULT 0',
     'total_available': 'REAL DEFAULT 0',
@@ -206,7 +207,7 @@ ALL_FIELDS = [
     'gross_salary', 'daily_wage',
     'overtime_weekend', 'overtime_holiday', 'overtime_total',
     'insurance_pension', 'insurance_medical', 'insurance_unemployment',
-    'insurance_housing_fund', 'insurance_critical_illness', 'insurance_total', 'tax_amount',
+    'insurance_housing_fund', 'insurance_critical_illness', 'extra_income', 'insurance_total', 'tax_amount',
     'total_available', 'total_expense', 'save_rate',
     'scheme_name',
 ]

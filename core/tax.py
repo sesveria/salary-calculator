@@ -145,16 +145,16 @@ def calc_all(basic_salary: float, social_base: float,
              actual_work_days: float = 0,
              month_work_days: float = 0,
              critical_illness_amount: float = DEFAULT_CRITICAL_ILLNESS,
+             extra_income: float = 0,
              cum_ytd_gross: float = 0,
              cum_ytd_insurance: float = 0,
              cum_months: int = 0,
              cum_ytd_deductions: float = 0,
              cum_tax_paid: float = 0) -> dict:
-    """一站式工资计算（支持累计预扣法 + 大病医疗）
+    """一站式工资计算（支持累计预扣法 + 大病医疗 + 额外收入）
 
     累计计税逻辑:
-      - 当 cum_months > 0 时，使用累计预扣法
-      - 否则回退到单月算法（首次计算或无历史数据）
+      - 始终使用累计预扣法，cum_months=0 即为新年首月
 
     参数:
         cum_ytd_gross: 本年累计至前月的应发工资
@@ -171,7 +171,7 @@ def calc_all(basic_salary: float, social_base: float,
     else:
         overtime = calc_overtime_from_salary(basic_salary, weekend_days, holiday_days)
 
-    # 2. 应发工资
+    # 2. 应发工资（含额外收入）
     if daily_mode and month_work_days > 0:
         dm = calc_daily_mode_gross(basic_salary, actual_work_days, month_work_days, overtime['total'])
         gross = dm['gross_salary']
@@ -179,6 +179,7 @@ def calc_all(basic_salary: float, social_base: float,
     else:
         gross = _calc_gross(basic_salary, overtime['total'])
         daily_wage = round(basic_salary / 21.75, 2)
+    gross = round(gross + extra_income, 2)
 
     # 3. 五险一金 + 大病医疗
     insurance = calc_insurance(social_base, housing_base, housing_rate,
@@ -199,6 +200,7 @@ def calc_all(basic_salary: float, social_base: float,
         'basic_salary': basic_salary,
         'daily_wage': daily_wage,
         'overtime': overtime,
+        'extra_income': extra_income,
         'gross_salary': gross,
         'insurance': insurance,
         'tax': tax,
