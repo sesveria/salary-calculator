@@ -5,6 +5,10 @@ __pycache__/
 *.db
 *.log
 
+# 本地数据备份（含个人财务数据，不进 git）
+backups/
+exports/
+
 # AI tool configs (not project code)
 .agent/
 .amazonq/

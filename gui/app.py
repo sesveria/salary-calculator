@@ -3,6 +3,7 @@ import flet as ft
 from gui.salary_tab import SalaryTab
 from gui.budget_tab import BudgetTab
 from gui.record_tab import RecordTab
+from gui.summary_tab import SummaryTab
 from data.storage import init_db
 from holiday import is_library_available, get_library_version
 import json
@@ -96,6 +97,15 @@ def _backfill_if_needed():
     reconcile_balances()
 
 
+def _auto_backup():
+    """启动时自动备份数据库（静默失败）"""
+    from data.backup import backup_db
+    path = backup_db()
+    if path:
+        import logging
+        logging.getLogger(__name__).info(f"数据库已备份: {path}")
+
+
 def main(page: ft.Page):
     page.title = "💰 工资计算器"
     page.theme_mode = ft.ThemeMode.LIGHT
@@ -119,12 +129,16 @@ def main(page: ft.Page):
     # 迁移旧数据：补全全量快照字段
     _backfill_if_needed()
 
+    # 启动时自动备份数据库（防误删/损坏）
+    _auto_backup()
+
     # 后台检查节假日库更新（非阻塞，不影响启动速度）
     _check_update_async(page)
 
     salary_tab = SalaryTab(page)
     budget_tab = BudgetTab(page)
     record_tab = RecordTab(page)
+    summary_tab = SummaryTab(page)
 
     tabs = ft.Tabs(
         selected_index=0,
@@ -135,6 +149,7 @@ def main(page: ft.Page):
                     ft.Tab(label="  \u5de5\u8d44\u8ba1\u7b97  ", icon=ft.Icons.CALCULATE),
                     ft.Tab(label="  \u9884\u7b97\u5206\u914d  ", icon=ft.Icons.ACCOUNT_BALANCE),
                     ft.Tab(label="  \u6708\u5ea6\u8bb0\u5f55  ", icon=ft.Icons.DATE_RANGE),
+                    ft.Tab(label="  \u5e74\u5ea6\u6c47\u603b  ", icon=ft.Icons.INSERT_CHART),
                 ],
             ),
             ft.TabBarView(
@@ -143,10 +158,11 @@ def main(page: ft.Page):
                     salary_tab.build(),
                     budget_tab.build(),
                     record_tab.build(),
+                    summary_tab.build(),
                 ],
             ),
         ], expand=True),
-        length=3,
+        length=4,
         expand=True,
     )
 

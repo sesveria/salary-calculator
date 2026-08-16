@@ -395,6 +395,39 @@ def get_budget_items(year_month: str, db_path: str = DB_PATH) -> list:
 # ── 全局设置 ──────────────────────────────────────────
 
 
+def export_records_csv(filepath: str, db_path: str = DB_PATH) -> int:
+    """导出全部月度记录为 CSV（UTF-8-BOM，Excel 兼容）
+
+    Args:
+        filepath: 输出 CSV 文件路径
+        db_path: 数据库路径
+
+    Returns:
+        导出的记录条数
+    """
+    import csv
+
+    records = list_records_asc(db_path)
+    if not records:
+        return 0
+
+    # 选重点字段（避免全量 48 列过于杂乱）
+    columns = [
+        'year_month', 'basic_salary', 'gross_salary',
+        'insurance_total', 'tax_amount', 'net_salary', 'extra_income',
+        'actual_necessary', 'actual_flexible', 'actual_savings',
+        'total_expense', 'save_rate', 'opening_balance', 'closing_balance',
+        'notes',
+    ]
+
+    with open(filepath, 'w', newline='', encoding='utf-8-sig') as f:
+        writer = csv.writer(f)
+        writer.writerow(columns)
+        for rec in records:
+            writer.writerow([rec.get(c, '') for c in columns])
+    return len(records)
+
+
 def get_setting(key: str, default: str = '', db_path: str = DB_PATH) -> str:
     conn = get_conn(db_path)
     cursor = conn.cursor()

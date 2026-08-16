@@ -1,10 +1,11 @@
 """月度记录 Tab — 选月份 → 加载 → 编辑 → 保存"""
 
 import datetime
+import os
 import flet as ft
 from data.storage import (
     list_records, get_monthly_record, save_monthly_record, delete_record,
-    get_budget_items, reconcile_balances,
+    get_budget_items, reconcile_balances, export_records_csv,
 )
 from core.budget import CATEGORY_LABELS
 from gui.logger import get_logger
@@ -74,6 +75,8 @@ class RecordTab:
                 ft.Row([
                     ft.Text("📅 月度记录", size=18, weight=ft.FontWeight.BOLD),
                     ft.Container(expand=True),
+                    ft.Button(content=ft.Text("📤 导出CSV"), icon=ft.Icons.DOWNLOAD,
+                              on_click=self._export_csv),
                     ft.Button(content=ft.Text("🔄 刷新"), icon=ft.Icons.REFRESH, on_click=self.refresh),
                 ]),
                 ft.Divider(),
@@ -218,6 +221,38 @@ class RecordTab:
         self.page.snack_bar.open = True
         self.page.update()
         log.info(f"记录保存: {ym}")
+
+    # ──── 导出 CSV ────
+
+    def _export_csv(self, e=None):
+        """导出全部月度记录为 CSV 到项目 exports/ 目录"""
+        try:
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            export_dir = os.path.join(project_root, 'exports')
+            os.makedirs(export_dir, exist_ok=True)
+            filepath = os.path.join(export_dir, f"records-{datetime.datetime.now().strftime('%Y%m%d')}.csv")
+
+            count = export_records_csv(filepath)
+            if count == 0:
+                self.page.snack_bar = ft.SnackBar(
+                    content=ft.Text("⚠️ 暂无记录可导出，请先保存工资数据"),
+                    bgcolor=ft.Colors.AMBER_100,
+                )
+            else:
+                self.page.snack_bar = ft.SnackBar(
+                    content=ft.Text(f"✅ 已导出 {count} 条记录 → {filepath}"),
+                    bgcolor=ft.Colors.GREEN_100,
+                )
+            self.page.snack_bar.open = True
+            self.page.update()
+            log.info(f"CSV 导出: {filepath} ({count} 条)")
+        except Exception as ex:
+            self.page.snack_bar = ft.SnackBar(
+                content=ft.Text(f"❌ 导出失败: {ex}"),
+                bgcolor=ft.Colors.RED_100,
+            )
+            self.page.snack_bar.open = True
+            self.page.update()
 
     # ──── 删除 ────
 
