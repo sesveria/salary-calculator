@@ -232,6 +232,8 @@ class RecordTab:
 
         def do_delete(e):
             delete_record(ym)
+            # 删除中间月份后必须重建结余链，否则后续月份期初/期末余额全错
+            reconcile_balances()
             if self._confirm_dialog:
                 self._confirm_dialog.open = False
             self.refresh()

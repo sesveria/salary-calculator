@@ -145,6 +145,9 @@ def calc_all(basic_salary: float, social_base: float,
              actual_work_days: float = 0,
              month_work_days: float = 0,
              critical_illness_amount: float = DEFAULT_CRITICAL_ILLNESS,
+             pension_rate: float = DEFAULT_PENSION_RATE,
+             medical_rate: float = DEFAULT_MEDICAL_RATE,
+             unemployment_rate: float = DEFAULT_UNEMPLOYMENT_RATE,
              cum_ytd_gross: float = 0,
              cum_ytd_insurance: float = 0,
              cum_months: int = 0,
@@ -156,6 +159,7 @@ def calc_all(basic_salary: float, social_base: float,
       - 始终使用累计预扣法，cum_months=0 即为新年首月
 
     参数:
+        pension_rate/medical_rate/unemployment_rate: 社保个人缴纳比例（可配置）
         cum_ytd_gross: 本年累计至前月的应发工资
         cum_ytd_insurance: 本年累计至前月的五险一金+大病医疗
         cum_months: 本年已有记录月数（前N-1个月计数）
@@ -180,8 +184,11 @@ def calc_all(basic_salary: float, social_base: float,
         daily_wage = round(basic_salary / 21.75, 2)
     # gross = round(gross + extra_income, 2)
 
-    # 3. 五险一金 + 大病医疗
+    # 3. 五险一金 + 大病医疗（使用可配置比例）
     insurance = calc_insurance(social_base, housing_base, housing_rate,
+                               pension_rate=pension_rate,
+                               medical_rate=medical_rate,
+                               unemployment_rate=unemployment_rate,
                                critical_illness_amount=critical_illness_amount)
 
     # 4. 个税（累计预扣法）

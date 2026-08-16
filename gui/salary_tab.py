@@ -60,6 +60,22 @@ class SalaryTab:
             prefix_icon=ft.Icons.MEDICAL_SERVICES, keyboard_type=ft.KeyboardType.NUMBER,
             hint_text="默认10元",
         )
+        # 社保个人缴纳比例（可配置，政策变化时无需改代码）
+        self.pension_rate = ft.TextField(
+            label="养老保险%", value="8", width=110,
+            prefix_icon=ft.Icons.SECURITY, keyboard_type=ft.KeyboardType.NUMBER,
+            hint_text="默认8%",
+        )
+        self.medical_rate = ft.TextField(
+            label="医疗保险%", value="2", width=110,
+            prefix_icon=ft.Icons.SECURITY, keyboard_type=ft.KeyboardType.NUMBER,
+            hint_text="默认2%",
+        )
+        self.unemployment_rate = ft.TextField(
+            label="失业保险%", value="0.5", width=110,
+            prefix_icon=ft.Icons.SECURITY, keyboard_type=ft.KeyboardType.NUMBER,
+            hint_text="默认0.5%",
+        )
         self.pay_day = ft.Dropdown(
             label="发薪日", value="15", width=140,
             options=[ft.dropdown.Option(str(d)) for d in [1, 5, 8, 10, 12, 15, 20, 25, 28]],
@@ -148,6 +164,9 @@ class SalaryTab:
         self.holiday_days.value = str(rec.get('holiday_overtime_days', 0) or 0)
         self.tax_deductions.value = str(rec.get('tax_deductions', 0) or 0)
         self.critical_illness.value = str(rec.get('insurance_critical_illness', 10) or 10)
+        self.pension_rate.value = str(round((rec.get('pension_rate', 0.08) or 0.08) * 100, 2)).rstrip('0').rstrip('.')
+        self.medical_rate.value = str(round((rec.get('medical_rate', 0.02) or 0.02) * 100, 2)).rstrip('0').rstrip('.')
+        self.unemployment_rate.value = str(round((rec.get('unemployment_rate', 0.005) or 0.005) * 100, 2)).rstrip('0').rstrip('.')
         self.pay_day.value = str(rec.get('pay_day', 15) or 15)
         log.info(f"工资Tab: 从 {ym} 恢复数据")
 
@@ -232,6 +251,12 @@ class SalaryTab:
                                 self.critical_illness,
                             ]),
                             ft.Row([
+                                ft.Text("社保比例:", size=13, color=ft.Colors.GREY_700),
+                                self.pension_rate,
+                                self.medical_rate,
+                                self.unemployment_rate,
+                            ]),
+                            ft.Row([
                                 self.weekend_days,
                                 ft.VerticalDivider(width=1),
                                 self.holiday_days,
@@ -313,6 +338,19 @@ class SalaryTab:
             rate_str = self.housing_rate.value.replace('%', '')
             rate = int(rate_str) / 100.0 if rate_str else 0.08
 
+            # 社保比例（可配置，% → 小数）
+            def _pct(field, default):
+                s = (field.value or '').strip().replace('%', '')
+                try:
+                    v = float(s) / 100.0
+                except ValueError:
+                    v = default
+                return v if 0 < v < 1 else default
+
+            pension_rate = _pct(self.pension_rate, 0.08)
+            medical_rate = _pct(self.medical_rate, 0.02)
+            unemployment_rate = _pct(self.unemployment_rate, 0.005)
+
             basic = float(self.basic_salary.value or 0)
             ot_base = float(self.overtime_base.value or 0) or basic
             social = float(self.social_base.value or 0)
@@ -350,6 +388,9 @@ class SalaryTab:
                 actual_work_days=actual_days,
                 month_work_days=month_days,
                 critical_illness_amount=ci,
+                pension_rate=pension_rate,
+                medical_rate=medical_rate,
+                unemployment_rate=unemployment_rate,
                 cum_ytd_gross=cum['ytd_gross'],
                 cum_ytd_insurance=cum['ytd_insurance'],
                 cum_months=cum['months_count'],
@@ -409,6 +450,19 @@ class SalaryTab:
         basic = float(self.basic_salary.value or 0)
         ot_base = float(self.overtime_base.value or 0) or basic
 
+        # 社保比例（与 on_calculate 相同的解析逻辑）
+        def _pct(field, default):
+            s = (field.value or '').strip().replace('%', '')
+            try:
+                v = float(s) / 100.0
+            except ValueError:
+                v = default
+            return v if 0 < v < 1 else default
+
+        pension_rate = _pct(self.pension_rate, 0.08)
+        medical_rate = _pct(self.medical_rate, 0.02)
+        unemployment_rate = _pct(self.unemployment_rate, 0.005)
+
         # 按天模式信息
         daily_mode = 1 if self.daily_mode_switch.value else 0
         entry_date = self._entry_date_field.value.strip() if daily_mode else ""
@@ -452,10 +506,10 @@ class SalaryTab:
             'month_work_days': month_days,
             'pay_day': int(self.pay_day.value or 15),
             'work_year_month': work_ym,
-            # 基准值
-            'pension_rate': 0.08,
-            'medical_rate': 0.02,
-            'unemployment_rate': 0.005,
+            # 基准值（社保比例来自输入框，政策变化无需改代码）
+            'pension_rate': pension_rate,
+            'medical_rate': medical_rate,
+            'unemployment_rate': unemployment_rate,
             'tax_free_threshold': 5000,
             # 计算结果
             'gross_salary': result['gross_salary'],
