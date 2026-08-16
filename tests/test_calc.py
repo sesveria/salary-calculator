@@ -5,7 +5,7 @@ from core.salary_calc import (
     calc_daily_wage, calc_overtime, calc_gross,
     calc_overtime_from_base, calc_daily_mode_gross,
 )
-from core.tax import calc_insurance, calc_tax, calc_tax_quick, calc_net, calc_all
+from core.tax import calc_insurance, calc_net, calc_all, calc_cumulative_tax
 from core.budget import allocate, validate, get_scheme, distribute_to_items, DEFAULT_SUB_ITEMS, calc_remaining
 
 
@@ -62,18 +62,30 @@ class TestTax:
         assert ins['total'] == 3385.0  # 3375 + 10（大病医保）
     
     def test_tax_below_threshold(self):
-        assert calc_tax(5000, 0, 0) == 0.0
-    
-    def test_tax_bracket_1(self):
-        # 应纳税所得额 = 8000 - 0 - 5000 - 0 = 3000
-        t = calc_tax(8000, 0, 0)
+        # 累计应发 5000 - 5000×1 = 0 应纳税所得 → 税为 0
+        assert calc_cumulative_tax(5000, 0, 1, 0, 0) == 0.0
+
+    def test_cumulative_tax_bracket_1(self):
+        # 第1月累计应发 8000，应税 = 8000-5000 = 3000 → 3% 档
+        t = calc_cumulative_tax(8000, 0, 1, 0, 0)
         assert t == pytest.approx(3000 * 0.03, rel=1e-2)
-    
-    def test_tax_bracket_2(self):
-        # 应纳税所得额 = 15000
-        t = calc_tax_quick(15000)
-        assert t == pytest.approx(15000 * 0.2 - 1410, rel=1e-2)  # = 1590
-    
+
+    def test_cumulative_tax_bracket_2(self):
+        # 第1月累计应发 155000，应税 = 150000 → 20% 档，速算扣除 16920
+        t = calc_cumulative_tax(155000, 0, 1, 0, 0)
+        assert t == pytest.approx(150000 * 0.20 - 16920, rel=1e-2)
+
+    def test_cumulative_tax_subtracts_paid(self):
+        # 第2月累计应发 11000，应税 = 11000-5000×1 = 6000 → 3% 档
+        # 已缴 90 → 本月补扣 180-90 = 90
+        t = calc_cumulative_tax(11000, 0, 1, 0, 90)
+        assert t == pytest.approx(6000 * 0.03 - 90, rel=1e-2)
+
+    def test_cumulative_tax_never_negative(self):
+        # 已缴 > 累计应缴（年终汇算多缴）→ 返回 0，不退
+        t = calc_cumulative_tax(3000, 0, 1, 0, 500)
+        assert t == 0.0
+
     def test_net(self):
         net = calc_net(17000, 2775, 651)
         assert net == pytest.approx(13574, rel=1e-2)

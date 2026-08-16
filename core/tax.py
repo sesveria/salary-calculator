@@ -67,35 +67,6 @@ def calc_insurance(social_base: float, housing_base: float,
     }
 
 
-def calc_tax_quick(taxable_income: float) -> float:
-    """按月度预扣法计算个税（单月，旧算法，用于无累计数据时的退路）"""
-    if taxable_income <= 0:
-        return 0.0
-    # 用月度级距（旧版保留作为 fallback）
-    brackets = [
-        (0, 3000, 0.03, 0),
-        (3000, 12000, 0.10, 210),
-        (12000, 25000, 0.20, 1410),
-        (25000, 35000, 0.25, 2660),
-        (35000, 55000, 0.30, 4410),
-        (55000, 80000, 0.35, 7160),
-        (80000, float('inf'), 0.45, 15160),
-    ]
-    for lower, upper, rate, deduction in brackets:
-        if lower < taxable_income <= upper:
-            return round(taxable_income * rate - deduction, 2)
-    return 0.0
-
-
-def calc_tax(gross_salary: float, insurance_total: float,
-             tax_deductions: float = 0) -> float:
-    """计算个税（单月，旧算法，无累计数据时的退路）
-    应纳税所得额 = 应发工资 - 五险一金 - 大病医疗 - 5000 - 专项附加扣除
-    """
-    taxable = gross_salary - insurance_total - TAX_FREE_THRESHOLD - tax_deductions
-    return calc_tax_quick(taxable)
-
-
 def calc_cumulative_tax(ytd_gross: float, ytd_insurance: float,
                         months_worked: int, ytd_deductions: float = 0,
                         tax_paid_ytd: float = 0) -> float:
